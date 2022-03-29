@@ -1,10 +1,10 @@
 package main
 
 import (
-	"os"
 	"bufio"
-	"strings"
+	"os"
 	"strconv"
+	"strings"
 )
 
 func splitLine(line string) (string, string) {
@@ -19,8 +19,41 @@ func splitLineToCoordinate(line string) Coordinate {
 	handleError(err, "Error: non-number found in input file")
 	f2, err2 := strconv.ParseFloat(values[1], 64)
 	handleError(err2, "Error: non-number found in input file")
-	
+
 	return Coordinate{f1, f2}
+}
+
+func findMinMaxValues(dataset Dataset) Dataset {
+	dataset.xMax = 0
+	dataset.xMin = 0
+	dataset.yMax = 0
+	dataset.yMin = 0
+
+	for i, c := range dataset.data {
+		if i == 0 || c.Y < dataset.yMin {
+			dataset.yMin = c.Y
+		}
+	}
+
+	for i, c := range dataset.data {
+		if i == 0 || c.Y > dataset.yMax {
+			dataset.yMax = c.Y
+		}
+	}
+
+	for i, c := range dataset.data {
+		if i == 0 || c.X < dataset.xMin {
+			dataset.xMin = c.X
+		}
+	}
+
+	for i, c := range dataset.data {
+		if i == 0 || c.X > dataset.xMax {
+			dataset.xMax = c.X
+		}
+	}
+
+	return dataset
 }
 
 func readDataset() Dataset {
@@ -28,11 +61,11 @@ func readDataset() Dataset {
 
 	// handle file open & close
 	filename := "../data.csv"
-	if (len(os.Args) > 1) {
+	if len(os.Args) > 1 {
 		filename = os.Args[1]
 	}
 	file, err := os.Open(filename)
-	handleError(err, "Error: could not read file")
+	handleError(err, "Error: could not read file \"" + filename + "\"")
 	defer file.Close()
 
 	// read values from file
@@ -42,5 +75,7 @@ func readDataset() Dataset {
 	for scanner.Scan() {
 		dataset.data = append(dataset.data, splitLineToCoordinate(scanner.Text()))
 	}
+	// find min/max values for x and y
+	dataset = findMinMaxValues(dataset)
 	return dataset
 }
